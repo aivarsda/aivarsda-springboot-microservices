@@ -1,0 +1,67 @@
+version: '2'
+services:
+  employee-service:
+    build: ../app-employee-service
+    depends_on:
+      - postgres
+      - rabbitmq
+    container_name: "app-employee-service"
+    ports:
+      - "9090:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      vpcbr:
+        ipv4_address: 10.5.0.5
+  events-service:
+    build: ../app-events-service
+    depends_on:
+      - mongo
+      - rabbitmq
+    container_name: "app-events-service"
+    ports:
+      - "9091:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      vpcbr:
+        ipv4_address: 10.5.0.6
+  postgres:
+    build: ../postgres
+    container_name: "postgres"
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: "mysupersecretpassword"
+    ports:
+      - "5432:5432"
+    networks:
+      vpcbr:
+        ipv4_address: 10.5.0.10
+  rabbitmq:
+    image: rabbitmq:3.7.9-management
+    container_name: "rabbitmq"
+    environment:
+      RABBITMQ_DEFAULT_USER: "user"
+      RABBITMQ_DEFAULT_PASS: "password"
+    ports:
+      - "5672:5672"
+    networks:
+      vpcbr:
+        ipv4_address: 10.5.0.11
+  mongo:
+    build: ../mongodb
+    container_name: "mongodb"
+    restart: always
+    ports:
+      - "27017:27017"
+    networks:
+      vpcbr:
+        ipv4_address: 10.5.0.12
+
+networks:
+  vpcbr:
+    driver: bridge
+    ipam:
+      config:
+       - subnet: 10.5.0.0/16
+         gateway: 10.5.0.1
